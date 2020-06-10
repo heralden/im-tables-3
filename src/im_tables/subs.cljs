@@ -287,3 +287,8 @@
    (subscribe [:main/temp-query loc]))
  (fn [query [_ loc]]
    (:constraintLogic query)))
+
+(reg-sub
+ :dev/results
+ (fn [db [_ prefix]]
+   (get-in db (glue prefix [:dev-results]))))

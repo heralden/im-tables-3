@@ -23,7 +23,8 @@
 (defn dev-setup []
   (when config/debug?
     (enable-console-print!)
-    (println "dev mode")))
+    (println "dev mode")
+    (re-frame/dispatch [:dev/listen-query [:test :location 0]])))
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)

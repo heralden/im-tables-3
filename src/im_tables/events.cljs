@@ -741,3 +741,29 @@
                       (dissoc :response))}
        (= error-type :network)
        (assoc :im-tables/log-error ["Network error" {:response res}])))))
+
+;; TODO document
+(reg-event-fx
+ :dev/listen-query
+ (sandbox)
+ (fn [{db :db} [_ loc]]
+   {:db db
+    :forward-events {:register :dev-listen ;; TODO more informative
+                     :events #{:main/replace-query-response
+                               :main/merge-query-response}
+                     :dispatch-to [:dev/query-ready loc]}}))
+
+(reg-event-fx
+ :dev/query-ready
+ (sandbox)
+ (fn [{db :db} [_ loc [_ _loc _settings _response]]]
+   {:db db
+    :im-tables/im-operation-chan
+    {:channel (fetch/records (:service db) (:query db))
+     :on-success [:dev/query-success loc]}}))
+
+(reg-event-db
+ :dev/query-success
+ (sandbox)
+ (fn [db [_ loc full-res]]
+   (assoc db :dev-results (:results full-res))))

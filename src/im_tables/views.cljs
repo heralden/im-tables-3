@@ -4,7 +4,9 @@
             [reagent.core :as r]
             [clojure.string :as string]
             [reagent.dom.server :as server]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall oget]]
+            [oz.core :refer [vega-lite]]
+            [goog.string :refer [parseInt]]))
 
 (def humanmine-config
   {:service {:root "https://www.humanmine.org/humanmine"}
@@ -64,7 +66,13 @@
                     "newConfirmed"
                     "newDeaths"
                     "geoLocation.country"
-                    "geoLocation.state"]}
+                    "geoLocation.state"]
+           :where [{:path "Cases.geoLocation.country"
+                    :op "="
+                    :value "United Kingdom"}
+                   {:path "Cases.date"
+                    :op ">="
+                    :value "2020-05-01"}]}
    :settings {:pagination {:limit 10}
               :links {:vocab {:mine "covidmine"}
                       :url (fn [{:keys [mine class objectId] :as _vocab}]
@@ -100,7 +108,7 @@
 (def number-of-tables 1)
 (defn reboot-tables-fn []
   (dotimes [n number-of-tables]
-    (re-frame/dispatch-sync [:im-tables/load [:test :location n] flymine-config])))
+    (re-frame/dispatch-sync [:im-tables/load [:test :location n] covidmine-config])))
 
 (defn main-panel []
   (let [show? (r/atom true)]
@@ -120,4 +128,6 @@
        (when @show?
          (into [:div {:style {:max-width "100vw"}}]
                (->> (range 0 number-of-tables)
-                    (map (fn [n] [main-view/main [:test :location n]])))))])))
+                    (map (fn [n] [main-view/main [:test :location n]])))))
+       (let [results @(re-frame.core/subscribe [:dev/results [:test :location 0]])]
+         #_[vega-lite {:data {:values results}}])])))
